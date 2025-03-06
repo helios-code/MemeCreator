@@ -1,19 +1,3 @@
-"""
-DEPRECATED: This module is deprecated and will be removed in a future version.
-Please use the new MVC structure instead:
-- models/punchline_model.py for punchline data storage
-- controllers/punchline_controller.py for punchline generation and evaluation logic
-"""
-
-import warnings
-
-warnings.warn(
-    "The QualityPipeline class is deprecated and will be removed in a future version. "
-    "Please use PunchlineController from controllers/punchline_controller.py instead.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
 import os
 import json
 import logging
@@ -87,7 +71,7 @@ class QualityPipeline:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
             subject TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             originality REAL,
             humor REAL,
             relevance REAL,
@@ -529,61 +513,26 @@ Réponds avec un objet JSON au format suivant:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Vérifier si la table existe avec les anciennes colonnes
+            # Vérifier la structure de la table
             cursor.execute("PRAGMA table_info(punchlines)")
             columns = [col[1] for col in cursor.fetchall()]
             
-            if "originality" in columns:
-                # Utiliser les anciennes colonnes
-                cursor.execute('''
-                INSERT INTO punchlines (
-                    text, subject, timestamp, originality, humor, relevance, conciseness, impact, overall_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    punchline,
-                    subject,
-                    datetime.now().isoformat(),
-                    evaluation.get("cruaute", 0.5),  # Utiliser cruaute à la place de originality
-                    evaluation.get("provocation", 0.5),  # Utiliser provocation à la place de humor
-                    evaluation.get("pertinence", 0.5),  # Utiliser pertinence à la place de relevance
-                    evaluation.get("concision", 0.5),  # Utiliser concision à la place de conciseness
-                    evaluation.get("impact", 0.5),  # impact reste le même
-                    overall_score
-                ))
-            else:
-                # Créer une nouvelle table avec les nouveaux noms de colonnes
-                cursor.execute('''
-                CREATE TABLE IF NOT EXISTS punchlines (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    text TEXT,
-                    subject TEXT,
-                    timestamp TEXT,
-                    cruaute REAL,
-                    provocation REAL,
-                    pertinence REAL,
-                    concision REAL,
-                    impact REAL,
-                    overall_score REAL,
-                    selected INTEGER DEFAULT 0
-                )
-                ''')
-                
-                # Insérer avec les nouveaux noms de colonnes
-                cursor.execute('''
-                INSERT INTO punchlines (
-                    text, subject, timestamp, cruaute, provocation, pertinence, concision, impact, overall_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    punchline,
-                    subject,
-                    datetime.now().isoformat(),
-                    evaluation.get("cruaute", 0.5),
-                    evaluation.get("provocation", 0.5),
-                    evaluation.get("pertinence", 0.5),
-                    evaluation.get("concision", 0.5),
-                    evaluation.get("impact", 0.5),
-                    overall_score
-                ))
+            # Convertir l'évaluation en JSON pour le stockage
+            evaluation_json = json.dumps(evaluation)
+            
+            # Insérer dans la table existante
+            cursor.execute('''
+            INSERT INTO punchlines (
+                text, subject, evaluation, overall_score, created_at, selected
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                punchline,
+                subject,
+                evaluation_json,
+                overall_score,
+                datetime.now().isoformat(),
+                0  # Non sélectionnée par défaut
+            ))
             
             conn.commit()
             conn.close()
@@ -726,9 +675,9 @@ Réponds avec un objet JSON au format suivant:
                 # Nouveaux noms de colonnes
                 query = '''
                 SELECT text, subject, cruaute, provocation, pertinence, concision, impact, 
-                       overall_score, selected, timestamp
+                       overall_score, selected, created_at
                 FROM punchlines
-                ORDER BY timestamp DESC
+                ORDER BY created_at DESC
                 '''
                 criteria_mapping = {
                     0: "text",
@@ -740,15 +689,15 @@ Réponds avec un objet JSON au format suivant:
                     6: "impact",
                     7: "overall_score",
                     8: "selected",
-                    9: "timestamp"
+                    9: "created_at"
                 }
             else:
                 # Anciens noms de colonnes
                 query = '''
                 SELECT text, subject, originality, humor, relevance, conciseness, impact, 
-                       overall_score, selected, timestamp
+                       overall_score, selected, created_at
                 FROM punchlines
-                ORDER BY timestamp DESC
+                ORDER BY created_at DESC
                 '''
                 criteria_mapping = {
                     0: "text",
@@ -760,7 +709,7 @@ Réponds avec un objet JSON au format suivant:
                     6: "impact",
                     7: "overall_score",
                     8: "selected",
-                    9: "timestamp"
+                    9: "created_at"
                 }
             
             cursor.execute(query)
@@ -777,10 +726,10 @@ Réponds avec un objet JSON au format suivant:
                         "subject": entry["subject"],
                         "scores": {
                             k: entry[k] for k in criteria_mapping.values() 
-                            if k not in ["text", "subject", "selected", "timestamp"]
+                            if k not in ["text", "subject", "selected", "created_at"]
                         },
                         "is_selected": bool(entry["selected"]),
-                        "timestamp": entry["timestamp"]
+                        "created_at": entry["created_at"]
                     }
                     
                     f.write(json.dumps(training_entry, ensure_ascii=False) + '\n')

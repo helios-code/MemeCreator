@@ -1,54 +1,46 @@
-from typing import Dict, List, Any, Optional, Tuple
 import os
 import sqlite3
 import json
 import logging
 from datetime import datetime
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-logger = logging.getLogger('punchline_model')
+from typing import Dict, List, Any, Optional
 
 class PunchlineModel:
     """
-    Model for handling punchline data and quality evaluation storage.
+    Modèle pour gérer les punchlines et leurs évaluations dans la base de données.
     """
     
     def __init__(self, db_path: str = None):
         """
-        Initialize the punchline model with database connection.
+        Initialise le modèle avec le chemin de la base de données.
         
         Args:
-            db_path: Path to the database (default: data/quality_data.db)
+            db_path: Chemin vers la base de données SQLite (par défaut: data/quality_data.db)
         """
-        # Set up database path
-        if db_path is None:
-            self.db_path = os.path.join(
+        # Chemin par défaut de la base de données
+        if not db_path:
+            db_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                 'data',
                 'quality_data.db'
             )
-        else:
-            self.db_path = db_path
-            
-        # Initialize database
+        
+        self.db_path = db_path
         self._init_database()
     
     def _init_database(self):
-        """Initialize the database with required tables if they don't exist."""
-        try:
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
-            
-            # Connect to database
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
-            
-            # Create punchlines table
+        """
+        Initialise la base de données si elle n'existe pas.
+        """
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Vérifier si la table existe déjà
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='punchlines'")
+        if not cursor.fetchone():
+            # Créer la table si elle n'existe pas
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS punchlines (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,215 +52,215 @@ class PunchlineModel:
                 selected INTEGER DEFAULT 0
             )
             ''')
-            
-            conn.commit()
-            conn.close()
-            logger.info(f"Database initialized at {self.db_path}")
-        except Exception as e:
-            logger.error(f"Error initializing database: {str(e)}")
-            raise
+        
+        conn.commit()
+        conn.close()
     
-    def store_evaluation(self, punchline: str, subject: str, evaluation: Dict[str, float], overall_score: float) -> int:
+    def store_evaluation(
+        self, 
+        punchline: str, 
+        subject: str, 
+        evaluation: Dict[str, float], 
+        overall_score: float
+    ):
         """
-        Store a punchline evaluation in the database.
+        Stocke l'évaluation d'une punchline dans la base de données.
         
         Args:
-            punchline: The punchline text
-            subject: The subject of the punchline
-            evaluation: Dictionary of evaluation criteria scores
-            overall_score: The overall quality score
-            
-        Returns:
-            int: ID of the stored evaluation
+            punchline: La punchline évaluée
+            subject: Le sujet de la punchline
+            evaluation: Les scores d'évaluation
+            overall_score: Le score global
         """
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Convert evaluation dict to JSON string
+            # Convertir l'évaluation en JSON pour le stockage
             evaluation_json = json.dumps(evaluation)
             
-            # Insert into database
-            cursor.execute(
-                '''
-                INSERT INTO punchlines (text, subject, evaluation, overall_score)
-                VALUES (?, ?, ?, ?)
-                ''',
-                (punchline, subject, evaluation_json, overall_score)
-            )
+            # Insérer la punchline et son évaluation
+            cursor.execute('''
+            INSERT INTO punchlines (
+                text, subject, evaluation, overall_score, created_at, selected
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                punchline,
+                subject,
+                evaluation_json,
+                overall_score,
+                datetime.now().isoformat(),
+                0  # Non sélectionnée par défaut
+            ))
             
-            punchline_id = cursor.lastrowid
             conn.commit()
             conn.close()
             
-            logger.info(f"Punchline evaluation stored with ID {punchline_id}")
-            return punchline_id
+            logging.info(f"✅ Évaluation stockée pour la punchline: '{punchline[:30]}...'")
+        
         except Exception as e:
-            logger.error(f"Error storing punchline evaluation: {str(e)}")
-            raise
+            logging.error(f"❌ Erreur lors du stockage de l'évaluation: {str(e)}")
     
-    def mark_as_selected(self, punchline: str) -> bool:
+    def mark_as_selected(self, punchline: str):
         """
-        Mark a punchline as selected (used in a meme).
+        Marque une punchline comme sélectionnée dans la base de données.
         
         Args:
-            punchline: The punchline text
-            
-        Returns:
-            bool: True if successful, False otherwise
+            punchline: La punchline à marquer comme sélectionnée
         """
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Update the selected status
-            cursor.execute(
-                'UPDATE punchlines SET selected = 1 WHERE text = ?',
-                (punchline,)
-            )
+            # Marquer la punchline comme sélectionnée
+            cursor.execute('''
+            UPDATE punchlines SET selected = 1 WHERE text = ?
+            ''', (punchline,))
             
-            affected_rows = cursor.rowcount
             conn.commit()
             conn.close()
             
-            if affected_rows > 0:
-                logger.info(f"Punchline marked as selected: '{punchline[:30]}...'")
-                return True
-            else:
-                logger.warning(f"No punchline found to mark as selected: '{punchline[:30]}...'")
-                return False
+            logging.info(f"✅ Punchline marquée comme sélectionnée: '{punchline[:30]}...'")
+        
         except Exception as e:
-            logger.error(f"Error marking punchline as selected: {str(e)}")
-            return False
+            logging.error(f"❌ Erreur lors du marquage de la punchline comme sélectionnée: {str(e)}")
     
     def get_evaluation_stats(self) -> Dict[str, Any]:
         """
-        Get statistics about punchline evaluations.
+        Récupère des statistiques sur les punchlines évaluées.
         
         Returns:
-            Dict: Statistics about punchline evaluations
+            Dict[str, Any]: Statistiques sur les punchlines
         """
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Get total count
-            cursor.execute('SELECT COUNT(*) FROM punchlines')
+            # Nombre total de punchlines
+            cursor.execute("SELECT COUNT(*) FROM punchlines")
             total_punchlines = cursor.fetchone()[0]
             
-            # Get selected count
-            cursor.execute('SELECT COUNT(*) FROM punchlines WHERE selected = 1')
+            # Nombre de punchlines sélectionnées
+            cursor.execute("SELECT COUNT(*) FROM punchlines WHERE selected = 1")
             selected_punchlines = cursor.fetchone()[0]
             
-            # Get average score
-            cursor.execute('SELECT AVG(overall_score) FROM punchlines')
-            average_score = cursor.fetchone()[0] or 0
+            # Score moyen global
+            cursor.execute("SELECT AVG(overall_score) FROM punchlines")
+            avg_score = cursor.fetchone()[0] or 0
             
-            # Get average score of selected punchlines
-            cursor.execute('SELECT AVG(overall_score) FROM punchlines WHERE selected = 1')
-            average_selected_score = cursor.fetchone()[0] or 0
+            # Sujets les plus fréquents
+            cursor.execute("SELECT subject, COUNT(*) FROM punchlines GROUP BY subject ORDER BY COUNT(*) DESC LIMIT 5")
+            top_subjects = cursor.fetchall()
             
-            # Get criteria averages
-            criteria_averages = {}
-            cursor.execute('SELECT evaluation FROM punchlines')
-            rows = cursor.fetchall()
-            
-            if rows:
-                # Get the first evaluation to determine criteria
-                first_eval = json.loads(rows[0][0])
-                criteria = first_eval.keys()
-                
-                # Initialize sums
-                criteria_sums = {criterion: 0 for criterion in criteria}
-                criteria_counts = {criterion: 0 for criterion in criteria}
-                
-                # Sum up all criteria values
-                for row in rows:
-                    evaluation = json.loads(row[0])
-                    for criterion, value in evaluation.items():
-                        if criterion in criteria_sums:
-                            criteria_sums[criterion] += value
-                            criteria_counts[criterion] += 1
-                
-                # Calculate averages
-                for criterion in criteria:
-                    if criteria_counts[criterion] > 0:
-                        criteria_averages[criterion] = criteria_sums[criterion] / criteria_counts[criterion]
-                    else:
-                        criteria_averages[criterion] = 0
+            # Récupérer les scores moyens des critères d'évaluation
+            cursor.execute("SELECT evaluation FROM punchlines")
+            evaluations = cursor.fetchall()
             
             conn.close()
+            
+            # Calculer les scores moyens pour chaque critère
+            criteria_scores = {
+                'cruaute': 0,
+                'provocation': 0,
+                'pertinence': 0,
+                'concision': 0,
+                'impact': 0
+            }
+            
+            count = 0
+            for eval_row in evaluations:
+                try:
+                    if eval_row[0]:
+                        evaluation = json.loads(eval_row[0])
+                        for criterion in criteria_scores:
+                            if criterion in evaluation:
+                                criteria_scores[criterion] += evaluation[criterion]
+                        count += 1
+                except:
+                    pass
+            
+            # Calculer les moyennes
+            if count > 0:
+                for criterion in criteria_scores:
+                    criteria_scores[criterion] /= count
             
             return {
                 'total_punchlines': total_punchlines,
                 'selected_punchlines': selected_punchlines,
-                'average_score': average_score,
-                'average_selected_score': average_selected_score,
-                'criteria_averages': criteria_averages
+                'selection_rate': selected_punchlines / total_punchlines if total_punchlines > 0 else 0,
+                'avg_score': avg_score,
+                'top_subjects': top_subjects,
+                'criteria_scores': criteria_scores
             }
+        
         except Exception as e:
-            logger.error(f"Error getting evaluation stats: {str(e)}")
+            logging.error(f"❌ Erreur lors de la récupération des statistiques: {str(e)}")
             return {
                 'total_punchlines': 0,
                 'selected_punchlines': 0,
-                'average_score': 0,
-                'average_selected_score': 0,
-                'criteria_averages': {}
+                'selection_rate': 0,
+                'avg_score': 0,
+                'top_subjects': [],
+                'criteria_scores': {
+                    'cruaute': 0,
+                    'provocation': 0,
+                    'pertinence': 0,
+                    'concision': 0,
+                    'impact': 0
+                }
             }
     
     def export_punchlines_for_training(self, output_file: str = None) -> str:
         """
-        Export punchlines for training purposes.
+        Exporte les punchlines pour l'entraînement.
         
         Args:
-            output_file: Path to the output file (default: data/training_data.json)
+            output_file: Chemin du fichier de sortie
             
         Returns:
-            str: Path to the exported file
+            str: Chemin du fichier exporté
         """
         try:
-            if output_file is None:
+            # Chemin par défaut du fichier de sortie
+            if not output_file:
                 output_dir = os.path.join(
                     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                    'data'
+                    'output',
+                    'exports'
                 )
                 os.makedirs(output_dir, exist_ok=True)
-                output_file = os.path.join(output_dir, 'training_data.json')
+                output_file = os.path.join(output_dir, 'punchlines.jsonl')
             
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Get all punchlines with their evaluations
+            # Récupérer toutes les punchlines avec leurs évaluations
             cursor.execute('''
-                SELECT text, subject, evaluation, overall_score, selected
-                FROM punchlines
-                ORDER BY overall_score DESC
+            SELECT id, text, subject, evaluation, overall_score, created_at, selected
+            FROM punchlines
+            ORDER BY created_at DESC
             ''')
             
             rows = cursor.fetchall()
-            
-            # Format the data
-            training_data = []
-            for row in rows:
-                text, subject, evaluation_json, overall_score, selected = row
-                evaluation = json.loads(evaluation_json)
-                
-                training_data.append({
-                    'punchline': text,
-                    'subject': subject,
-                    'evaluation': evaluation,
-                    'overall_score': overall_score,
-                    'selected': bool(selected)
-                })
-            
-            # Write to file
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(training_data, f, ensure_ascii=False, indent=2)
-            
             conn.close()
-            logger.info(f"Exported {len(training_data)} punchlines to {output_file}")
             
+            # Exporter les punchlines en format JSONL
+            with open(output_file, 'w', encoding='utf-8') as f:
+                for row in rows:
+                    punchline_data = {
+                        'id': row[0],
+                        'text': row[1],
+                        'subject': row[2],
+                        'evaluation': json.loads(row[3]) if row[3] else {},
+                        'overall_score': row[4],
+                        'created_at': row[5],
+                        'selected': bool(row[6])
+                    }
+                    f.write(json.dumps(punchline_data, ensure_ascii=False) + '\n')
+            
+            logging.info(f"✅ {len(rows)} punchlines exportées vers {output_file}")
             return output_file
+        
         except Exception as e:
-            logger.error(f"Error exporting punchlines for training: {str(e)}")
-            raise 
+            logging.error(f"❌ Erreur lors de l'exportation des punchlines: {str(e)}")
+            return None 
