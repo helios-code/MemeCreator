@@ -1,3 +1,18 @@
+"""
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Please use the new MVC structure instead:
+- controllers/meme_controller.py for meme generation logic
+"""
+
+import warnings
+
+warnings.warn(
+    "The MemeGenerator class is deprecated and will be removed in a future version. "
+    "Please use MemeController from controllers/meme_controller.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 from clients.openai_client import OpenAIClient
 from core.video_processor import VideoProcessor
 from clients.telegram_client import TelegramClient

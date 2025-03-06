@@ -1,3 +1,19 @@
+"""
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Please use the new MVC structure instead:
+- models/punchline_model.py for punchline data storage
+- controllers/punchline_controller.py for punchline generation and evaluation logic
+"""
+
+import warnings
+
+warnings.warn(
+    "The QualityPipeline class is deprecated and will be removed in a future version. "
+    "Please use PunchlineController from controllers/punchline_controller.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 import os
 import json
 import logging

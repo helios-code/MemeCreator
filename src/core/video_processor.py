@@ -1,3 +1,20 @@
+"""
+DEPRECATED: This module is deprecated and will be removed in a future version.
+Please use the new MVC structure instead:
+- models/video_model.py for video configuration
+- views/video_view.py for video rendering
+- controllers/video_controller.py for video processing logic
+"""
+
+import warnings
+
+warnings.warn(
+    "The VideoProcessor class is deprecated and will be removed in a future version. "
+    "Please use the new MVC structure instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 import os
 import uuid
 from datetime import datetime
