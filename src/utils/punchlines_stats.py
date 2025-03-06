@@ -15,7 +15,7 @@ def get_punchlines_stats(db_path=None):
     if not db_path:
         db_path = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            'data',
+            'output',
             'quality_data.db'
         )
     
@@ -36,41 +36,18 @@ def get_punchlines_stats(db_path=None):
     cursor.execute("SELECT COUNT(*) FROM punchlines WHERE selected = 1")
     selected_punchlines = cursor.fetchone()[0]
     
-    # Scores moyens - Nous devons extraire les scores du JSON d'évaluation
-    cursor.execute("SELECT evaluation, overall_score FROM punchlines")
-    rows = cursor.fetchall()
-    
-    # Initialiser les compteurs pour les scores
-    cruaute_total = 0
-    provocation_total = 0
-    pertinence_total = 0
-    concision_total = 0
-    impact_total = 0
-    overall_total = 0
-    valid_rows = 0
-    
-    # Calculer les moyennes
-    for row in rows:
-        try:
-            evaluation = json.loads(row[0])
-            cruaute_total += evaluation.get('cruaute', 0)
-            provocation_total += evaluation.get('provocation', 0)
-            pertinence_total += evaluation.get('pertinence', 0)
-            concision_total += evaluation.get('concision', 0)
-            impact_total += evaluation.get('impact', 0)
-            overall_total += row[1]
-            valid_rows += 1
-        except (json.JSONDecodeError, TypeError):
-            # Ignorer les lignes avec des données invalides
-            pass
-    
-    # Calculer les moyennes
-    avg_cruaute = cruaute_total / valid_rows if valid_rows > 0 else 0
-    avg_provocation = provocation_total / valid_rows if valid_rows > 0 else 0
-    avg_pertinence = pertinence_total / valid_rows if valid_rows > 0 else 0
-    avg_concision = concision_total / valid_rows if valid_rows > 0 else 0
-    avg_impact = impact_total / valid_rows if valid_rows > 0 else 0
-    avg_overall = overall_total / valid_rows if valid_rows > 0 else 0
+    # Scores moyens
+    cursor.execute("""
+        SELECT 
+            AVG(originality), 
+            AVG(humor), 
+            AVG(relevance), 
+            AVG(conciseness), 
+            AVG(impact), 
+            AVG(overall_score)
+        FROM punchlines
+    """)
+    avg_scores = cursor.fetchone()
     
     # Sujets les plus fréquents
     cursor.execute("SELECT subject FROM punchlines")
@@ -84,12 +61,12 @@ def get_punchlines_stats(db_path=None):
     print(f"Sélectionnées: {selected_punchlines} ({selected_punchlines/total_punchlines*100:.1f}% du total)")
     
     print("\nScores moyens:")
-    print(f"Cruauté: {avg_cruaute:.2f}")
-    print(f"Provocation: {avg_provocation:.2f}")
-    print(f"Pertinence: {avg_pertinence:.2f}")
-    print(f"Concision: {avg_concision:.2f}")
-    print(f"Impact: {avg_impact:.2f}")
-    print(f"Score global: {avg_overall:.2f}")
+    print(f"Originalité: {avg_scores[0]:.2f}")
+    print(f"Humour: {avg_scores[1]:.2f}")
+    print(f"Pertinence: {avg_scores[2]:.2f}")
+    print(f"Concision: {avg_scores[3]:.2f}")
+    print(f"Impact: {avg_scores[4]:.2f}")
+    print(f"Score global: {avg_scores[5]:.2f}")
     
     print("\nSujets les plus fréquents:")
     for subject, count in top_subjects:

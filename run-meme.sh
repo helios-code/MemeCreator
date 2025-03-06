@@ -2,18 +2,21 @@
 
 # Script pour faciliter l'utilisation du générateur de mèmes avec Docker ou Python directement
 
-# Vérifier si Docker est installé
-if ! command -v docker &> /dev/null; then
-    echo "⚠️ Docker n'est pas installé. Utilisation de Python directement."
-    USE_PYTHON=true
-else
-    USE_PYTHON=false
-    # Vérifier si Docker Compose est disponible
-    if ! docker compose version &> /dev/null; then
-        echo "⚠️ Docker Compose n'est pas disponible. Utilisation de Python directement."
-        USE_PYTHON=true
-    fi
-fi
+# Force Python mode for testing
+USE_PYTHON=true
+
+# Vérifier si Docker est installé (skipped due to forced Python mode)
+# if ! command -v docker &> /dev/null; then
+#     echo "⚠️ Docker n'est pas installé. Utilisation de Python directement."
+#     USE_PYTHON=true
+# else
+#     USE_PYTHON=false
+#     # Vérifier si Docker Compose est disponible
+#     if ! docker compose version &> /dev/null; then
+#         echo "⚠️ Docker Compose n'est pas disponible. Utilisation de Python directement."
+#         USE_PYTHON=true
+#     fi
+# fi
 
 # Vérifier si l'image Docker existe, sinon la construire
 check_docker_image() {

@@ -1,18 +1,3 @@
-"""
-DEPRECATED: This module is deprecated and will be removed in a future version.
-Please use the new MVC structure instead:
-- controllers/meme_controller.py for meme generation logic
-"""
-
-import warnings
-
-warnings.warn(
-    "The MemeGenerator class is deprecated and will be removed in a future version. "
-    "Please use MemeController from controllers/meme_controller.py instead.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
 from clients.openai_client import OpenAIClient
 from core.video_processor import VideoProcessor
 from clients.telegram_client import TelegramClient
@@ -138,17 +123,11 @@ class MemeGenerator:
             # Étape 5: Envoyer la vidéo sur Telegram si configuré
             should_send = send_to_telegram if send_to_telegram is not None else self.telegram_client.auto_send
             if should_send:
-                # Créer un message complet avec le sujet, la punchline, la description et les hashtags
+                # Créer un message avec uniquement la description et les hashtags
                 # Format du message pour Telegram (avec formatage Markdown)
                 caption = f"*🎭 L'ARROGANCE!*\n\n"
-                caption += f"*Sujet:* {result['subject']}\n\n"
-                caption += f"*\"{text}\"*\n\n"
                 caption += f"{result['description']}\n\n"
                 caption += " ".join(result['hashtags'])
-                
-                # Ajouter les scores d'évaluation si disponibles
-                if "quality_evaluation" in result:
-                    caption += f"\n\n📊 *Score de qualité:* {result['quality_evaluation']['overall_score']:.2f}/1"
                 
                 await self.telegram_client.send_video(output_path, caption)
             

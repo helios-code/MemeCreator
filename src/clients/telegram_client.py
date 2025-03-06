@@ -155,8 +155,6 @@ class TelegramClient:
                 
                 # Créer un message complet avec le sujet, la punchline, la description et les hashtags
                 caption = f"*🎭 L'ARROGANCE!*\n\n"
-                caption += f"*Sujet:* {result['subject']}\n\n"
-                caption += f"*\"{result['text']}\"*\n\n"
                 
                 # Ajouter la description si elle existe
                 if 'description' in result:

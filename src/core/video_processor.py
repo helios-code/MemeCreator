@@ -1,64 +1,70 @@
-"""
-DEPRECATED: This module is deprecated and will be removed in a future version.
-Please use the new MVC structure instead:
-- models/video_model.py for video configuration
-- views/video_view.py for video rendering
-- controllers/video_controller.py for video processing logic
-"""
-
-import warnings
-
-warnings.warn(
-    "The VideoProcessor class is deprecated and will be removed in a future version. "
-    "Please use the new MVC structure instead.",
-    DeprecationWarning,
-    stacklevel=2
-)
-
 import os
+import logging
+from pathlib import Path
 import uuid
 from datetime import datetime
 from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip
 from dotenv import load_dotenv
+import moviepy.config as mpconfig
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+from moviepy.video.VideoClip import ImageClip
+
+# Configurer MoviePy pour utiliser ImageMagick
+mpconfig.IMAGEMAGICK_BINARY = 'convert'
 
 # Charger les variables d'environnement
 load_dotenv()
 
 class VideoProcessor:
     def __init__(self):
-        # Obtenir le chemin absolu du répertoire courant
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(os.path.dirname(current_dir))
+        # Déterminer le répertoire courant et le répertoire racine du projet
+        self.current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.project_root = os.path.abspath(os.path.join(self.current_dir, "../.."))
         
-        # Chemin du fichier template
-        self.template_path = os.path.join(os.path.dirname(current_dir), 'data', 'template.mp4')
+        # Chemin du fichier vidéo template
+        template_path_env = os.getenv('TEMPLATE_VIDEO_PATH', 'data/template.mp4')
         
-        # Vérifier que le fichier template existe
+        # Construire le chemin complet
+        self.template_path = os.path.join(self.project_root, template_path_env)
+        
+        # Si le chemin n'existe pas, essayer un chemin alternatif
         if not os.path.exists(self.template_path):
-            raise FileNotFoundError(f"Le fichier template {self.template_path} n'existe pas")
+            alternative_path = os.path.join(self.project_root, 'src/data/template.mp4')
+            if os.path.exists(alternative_path):
+                self.template_path = alternative_path
+            else:
+                raise FileNotFoundError(f"Le fichier template n'existe pas: {self.template_path}")
         
-        # Chemin du dossier de sortie
-        output_dir_env = os.getenv('OUTPUT_DIRECTORY', 'output')
-        if not os.path.isabs(output_dir_env):
-            self.output_dir = os.path.join(project_root, output_dir_env, 'videos')
-        else:
-            self.output_dir = os.path.join(output_dir_env, 'videos')
+        # Déterminer le répertoire de sortie
+        output_dir = os.environ.get("OUTPUT_DIRECTORY", "output")
+        self.output_dir = os.path.join(self.project_root, output_dir, "videos")
+        
+        # Créer le répertoire de sortie s'il n'existe pas
+        os.makedirs(self.output_dir, exist_ok=True)
         
         # Autres paramètres
         self.font = os.getenv('FONT_PATH', 'Arial')
         self.font_size = int(os.getenv('FONT_SIZE', '40'))
         self.text_color = os.getenv('TEXT_COLOR', 'white')
-        # Forcer la position du texte à 35% de la hauteur (environ 250px sur une vidéo 720p)
-        self.text_position_y = 0.19  # Valeur forcée pour placer le texte plus bas
-        self.text_margin_x = float(os.getenv('TEXT_MARGIN_X', '0.02'))      # 1% de marge de chaque côté
-        self.text_bg = os.getenv('TEXT_BACKGROUND', 'black')
         
-        # Créer le dossier de sortie s'il n'existe pas
-        os.makedirs(self.output_dir, exist_ok=True)
+        # Conversion des valeurs numériques avec gestion d'erreurs
+        try:
+            self.text_position_y = float(os.getenv('TEXT_POSITION_Y', '0.35'))
+        except ValueError:
+            self.text_position_y = 0.35  # Valeur par défaut
+        
+        try:
+            self.text_margin_x = float(os.getenv('TEXT_MARGIN_X', '0.02'))
+        except ValueError:
+            self.text_margin_x = 0.02  # Valeur par défaut
+            
+        self.text_bg = os.getenv('TEXT_BACKGROUND', 'black')
         
         # Vérifier que le fichier template existe
         if not os.path.exists(self.template_path):
-            raise FileNotFoundError(f"Le fichier template {self.template_path} n'existe pas")
+            logging.error(f"❌ Le fichier template n'existe pas: {self.template_path}")
+            raise FileNotFoundError(f"Le fichier template n'existe pas: {self.template_path}")
         
         # Vérifier que le fichier est une vidéo valide
         try:
@@ -148,9 +154,20 @@ class VideoProcessor:
             # Calculer la largeur du texte avec les marges
             text_width = width * (1 - 2 * self.text_margin_x)
             
+            # Nettoyer le texte (supprimer les tirets et guillemets indésirables)
+            cleaned_text = text.strip()
+            
+            # Supprimer les tirets et guillemets au début
+            while cleaned_text and (cleaned_text[0] in ['-', '"', '"', '"']):
+                cleaned_text = cleaned_text[1:].strip()
+            
+            # Supprimer les guillemets à la fin
+            while cleaned_text and (cleaned_text[-1] in ['"', '"', '"']):
+                cleaned_text = cleaned_text[:-1].strip()
+            
             # Créer le clip de texte avec un fond
             text_clip = TextClip(
-                text,
+                cleaned_text,
                 font=self.font,
                 fontsize=self.font_size,
                 color=self.text_color,
@@ -169,6 +186,9 @@ class VideoProcessor:
             return text_clip
         except Exception as e:
             print(f"❌ Erreur lors de la création du clip de texte: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            
             # Créer un clip de texte d'erreur
             error_clip = TextClip(
                 "Erreur de texte",

@@ -79,7 +79,7 @@ class OpenAIClient:
         use_economy_mode = economy_mode if economy_mode is not None else self.economy_mode
         
         # Créer des hashtags par défaut basés sur le sujet
-        default_hashtags = ["#LARROGANCE", "#meme", "#humour", "#satire"]
+        default_hashtags = ["#LARROGANCE", "#meme", "#humour", "#satire", "#hypocrisie"]
         if subject:
             # Créer un hashtag à partir du sujet
             import re
@@ -93,15 +93,15 @@ class OpenAIClient:
             client = OpenAI(api_key=self.api_key)
             
             if use_economy_mode:
-                # Version économique du prompt
-                system_content = "Génère uniquement des hashtags pour un mème humoristique."
-                user_content = f"Pour un mème sur '{subject}' avec la punchline: '{punchline}', génère 3-5 hashtags pertinents et populaires. Réponds uniquement avec les hashtags, un par ligne, au format #hashtag."
+                # Version économique du prompt améliorée
+                system_content = "Tu es un expert en hashtags viraux et provocants pour les réseaux sociaux."
+                user_content = f"Pour un mème satirique 'L'ARROGANCE!' sur '{subject}' avec la punchline: '{punchline}', génère 4-6 hashtags qui:\n1. Sont pertinents au sujet et à l'hypocrisie soulignée\n2. Incluent des termes provocants ou clivants\n3. Sont populaires et recherchés\n4. Incluent au moins un hashtag ironique\nRéponds uniquement avec les hashtags, un par ligne, au format #hashtag."
                 model = "gpt-3.5-turbo"
-                max_tokens = 100
+                max_tokens = 120
             else:
-                # Version complète du prompt
-                system_content = "Tu es un expert en marketing de contenu humoristique sur les réseaux sociaux. Tu génères des hashtags percutants pour des mèmes satiriques."
-                user_content = f"Je viens de créer un mème 'L'ARROGANCE!' sur le sujet '{subject}' avec la punchline suivante:\n\n'{punchline}'\n\nGénère 5-7 hashtags pertinents et populaires. Réponds uniquement avec les hashtags, un par ligne, au format #hashtag."
+                # Version complète du prompt améliorée
+                system_content = "Tu es un expert en marketing viral sur les réseaux sociaux. Tu excelles à créer des hashtags qui génèrent un maximum d'engagement, de débats et de partages en amplifiant les contradictions et hypocrisies."
+                user_content = f"Je viens de créer un mème 'L'ARROGANCE!' sur le sujet '{subject}' avec la punchline suivante:\n\n'{punchline}'\n\nGénère 5-8 hashtags qui:\n1. Sont directement liés au sujet et à l'hypocrisie soulignée\n2. Incluent des termes provocants ou clivants qui attireront l'attention\n3. Sont populaires et recherchés sur les réseaux sociaux\n4. Incluent au moins un hashtag ironique ou sarcastique\n5. Incluent au moins un hashtag en français et un en anglais\n\nRéponds uniquement avec les hashtags, un par ligne, au format #hashtag."
                 model = "gpt-4"
                 max_tokens = 300
             
@@ -112,7 +112,7 @@ class OpenAIClient:
                     {"role": "user", "content": user_content}
                 ],
                 max_tokens=max_tokens,
-                temperature=0.7
+                temperature=0.8
             )
             
             content = response.choices[0].message.content.strip()
@@ -126,6 +126,10 @@ class OpenAIClient:
             if not hashtags or len(hashtags) < 3:
                 print("⚠️ Pas assez de hashtags générés, utilisation des hashtags par défaut")
                 return default_hashtags
+            
+            # Ajouter toujours #LARROGANCE en premier s'il n'est pas déjà présent
+            if "#LARROGANCE" not in hashtags:
+                hashtags.insert(0, "#LARROGANCE")
             
             return hashtags
         except Exception as e:
@@ -155,15 +159,15 @@ class OpenAIClient:
             client = OpenAI(api_key=self.api_key)
             
             if use_economy_mode:
-                # Version économique du prompt
-                system_content = "Tu es un expert en marketing de contenu humoristique. Génère une description courte et percutante."
-                user_content = f"Pour un mème satirique 'L'ARROGANCE!' sur '{subject}' avec la punchline: '{punchline}', génère une description engageante (max 100 caractères) qui explique la blague et incite au partage. Sois direct et provocant."
+                # Version économique du prompt améliorée
+                system_content = "Tu es un expert en marketing de contenu satirique et provocant. Ton objectif est de créer des descriptions qui génèrent de l'engagement et des réactions fortes."
+                user_content = f"Pour un mème satirique 'L'ARROGANCE!' sur '{subject}' avec la punchline: '{punchline}', génère une description percutante (max 120 caractères) qui:\n1. Amplifie l'hypocrisie soulignée dans la punchline\n2. Utilise un ton froid et méprisant\n3. Provoque une réaction émotionnelle\n4. Incite au partage\nSois direct et provocant, sans être vulgaire."
                 model = "gpt-3.5-turbo"
-                max_tokens = 100
+                max_tokens = 120
             else:
-                # Version complète du prompt
-                system_content = "Tu es un expert en marketing de contenu humoristique sur les réseaux sociaux. Tu génères des descriptions engageantes pour des mèmes satiriques qui maximisent l'engagement et les partages."
-                user_content = f"Je viens de créer un mème 'L'ARROGANCE!' sur le sujet '{subject}' avec la punchline suivante:\n\n'{punchline}'\n\nGénère une description engageante (100-150 caractères) qui:\n1. Explique subtilement la blague sans la gâcher\n2. Utilise un ton provocant qui incite au débat\n3. Inclut un appel à l'action implicite pour le partage\n\nLa description doit être percutante et faire sourire."
+                # Version complète du prompt améliorée
+                system_content = "Tu es un expert en marketing de contenu satirique et provocant sur les réseaux sociaux. Tu excelles à créer des descriptions qui génèrent un maximum d'engagement, de débats et de partages en amplifiant les contradictions et hypocrisies."
+                user_content = f"Je viens de créer un mème 'L'ARROGANCE!' sur le sujet '{subject}' avec la punchline suivante:\n\n'{punchline}'\n\nGénère une description percutante (120-150 caractères) qui:\n1. Amplifie l'hypocrisie soulignée dans la punchline\n2. Utilise un ton froid, méprisant et légèrement arrogant\n3. Provoque une réaction émotionnelle forte (indignation, rire jaune, identification)\n4. Contient une question rhétorique OU une affirmation tranchée\n5. Incite implicitement au partage\n\nLa description doit être concise, provocante et faire réagir, sans être vulgaire."
                 model = "gpt-4"
                 max_tokens = 200
             
@@ -174,7 +178,7 @@ class OpenAIClient:
                     {"role": "user", "content": user_content}
                 ],
                 max_tokens=max_tokens,
-                temperature=0.7
+                temperature=0.8
             )
             
             description = response.choices[0].message.content.strip()

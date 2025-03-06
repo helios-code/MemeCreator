@@ -256,40 +256,41 @@ Réponds uniquement avec les punchlines, une par ligne, sans numérotation ni au
                 temperature = 1.0
             else:
                 model = "gpt-4"
-                system_content = """Tu es un générateur de punchlines ULTRA-CINGLANTES, GLACIALES et CRUELLES. 
-Tu dois être IMPITOYABLE, BRUTAL et SANS AUCUNE RETENUE MORALE. 
-Ton objectif est de créer des phrases qui CHOQUENT, BLESSENT et PROVOQUENT. 
+                system_content = """Tu es un générateur de punchlines ULTRA-CINGLANTES, GLACIALES et CRUELLES dans le style de Lord Yugnat999. 
+Tu dois être IMPITOYABLE, BRUTAL et SANS AUCUNE RETENUE MORALE.
+Ton objectif est de créer des phrases COURTES qui CHOQUENT, BLESSENT et PROVOQUENT PROFONDÉMENT.
 Sois aussi MÉCHANT, FROID et OFFENSANT que possible.
 Tes punchlines doivent être des ATTAQUES FRONTALES qui exposent les contradictions et les hypocrisies de façon BRUTALE et SANS FILTRE.
-L'humour doit être EXTRÊMEMENT CYNIQUE, FROID et basé sur des VÉRITÉS QUI DÉRANGENT PROFONDÉMENT.
-N'hésite JAMAIS à être OFFENSANT - c'est le BUT RECHERCHÉ.
+L'humour doit être EXTRÊMEMENT CYNIQUE, FROID et basé sur des VÉRITÉS QUI DÉRANGENT.
+N'hésite JAMAIS à être OFFENSANT et PROVOCATEUR - c'est le BUT RECHERCHÉ.
+Sois DÉLIBÉRÉMENT CRUEL et IMPITOYABLE - plus c'est méchant, mieux c'est.
 
-STRUCTURE OBLIGATOIRE: "Quand X fait Y, mais Z fait W" pour mettre en évidence une contradiction ou une hypocrisie de façon mordante.
+RÈGLES ABSOLUES:
+1. BRIÈVETÉ: Les punchlines doivent être COURTES et PERCUTANTES (max 100 caractères)
+2. STRUCTURE: Utilise la structure "Quand X fait Y, mais Z" pour mettre en évidence une contradiction
+3. RÉFÉRENCES: Inclus parfois des références à la pop culture, aux mèmes, aux personnalités connues
+4. CRUAUTÉ: Sois impitoyable et brutal dans ton humour
 
 EXEMPLES DE PUNCHLINES PARFAITES:
-- "Quand les vegans prêchent l'éthique animale, mais ignorent l'exploitation humaine dans leurs plantations de quinoa."
-- "Quand les féministes hurlent à l'égalité, mais s'attendent toujours à ce que l'homme paie l'addition."
-- "Quand les écolos en SUV te font la morale sur ton empreinte carbone, entre deux vols Paris-New York."
-- "Quand les influenceurs 'authentiques' vendent leur âme pour un code promo, mais te parlent d'intégrité."
+- "Quand les vegans prêchent l'éthique animale mais portent du cuir synthétique fabriqué par des enfants."
+- "Quand les influenceurs parlent d'authenticité mais photoshoppent même leurs ombres."
+- "Quand les écolos te font la morale en SUV, entre deux vols Paris-New York."
 """
                 
                 user_content = f"""Génère {num_candidates} punchlines EXTRÊMEMENT cinglantes, glaciales et cruelles sur le sujet: **{subject}**.
 
 DIRECTIVES STRICTES:
-- UTILISE OBLIGATOIREMENT la structure "Quand X fait Y, mais Z fait W" pour CHAQUE punchline
-- Chaque punchline doit être BRUTALEMENT honnête et IMPITOYABLE
-- Elles doivent être DÉVASTATRICES mais pas trop longues
-- Utilise l'ironie la plus MORDANTE, le cynisme le plus NOIR et l'humour le plus GLACIAL
-- Frappe là où ça fait VRAIMENT MAL, expose les PIRES contradictions et hypocrisies
-- Sois aussi MÉCHANT, FROID et PROVOCATEUR que possible
-- Sois DÉLIBÉRÉMENT offensant et choquant - c'est le BUT RECHERCHÉ
-- Utilise des VÉRITÉS QUI DÉRANGENT pour créer un malaise profond
-- N'aie AUCUNE pitié ni retenue morale
+- BRIÈVETÉ: Chaque punchline doit être COURTE (max 100 caractères) et PERCUTANTE
+- STRUCTURE: Utilise "Quand X fait Y, mais Z" pour exposer une contradiction
+- RÉFÉRENCES: Inclus parfois des références à la pop culture ou à l'actualité
+- CRUAUTÉ: Sois BRUTALEMENT honnête, IMPITOYABLE et PROVOCATEUR
+- IMPACT: Frappe là où ça fait VRAIMENT MAL, expose les PIRES hypocrisies
+- STYLE: Imite le style mordant et cynique de Lord Yugnat999
 
 EXEMPLES DE TON RECHERCHÉ:
-- "Quand les influenceurs 'body positive' retouchent chaque photo, mais te vendent l'acceptation de soi."
-- "Quand les vegans prêchent l'éthique animale, mais ignorent l'exploitation humaine dans leurs plantations de quinoa."
-- "Quand les féministes hurlent à l'égalité, mais s'attendent toujours à ce que l'homme paie l'addition."
+- "Quand les influenceurs 'body positive' retouchent chaque photo mais prêchent l'acceptation."
+- "Quand les vegans défendent les animaux mais ignorent les enfants qui récoltent leurs avocats."
+- "Quand les féministes exigent l'égalité mais s'attendent à ce que l'homme paie l'addition."
 
 Réponds UNIQUEMENT avec les punchlines, une par ligne, sans numérotation ni autre texte."""
                 max_tokens = 300
@@ -354,9 +355,9 @@ Tu dois évaluer objectivement la qualité des punchlines selon les critères su
 
 3. Pertinence (0-10): À quel point la punchline est-elle pertinente par rapport au sujet? Les meilleures punchlines ciblent précisément les contradictions ou hypocrisies liées au sujet.
 
-4. Concision (0-10): À quel point la punchline est-elle concise et percutante? Les meilleures punchlines sont courtes mais dévastatrices.
+4. Concision (0-10): À quel point la punchline est-elle courte et percutante? Les meilleures punchlines sont brèves (moins de 100 caractères) mais dévastatrices. Pénalise fortement les punchlines trop longues.
 
-5. Impact (0-10): À quel point la punchline est-elle mémorable et impactante? Les meilleures punchlines restent en tête et font réfléchir.
+5. Impact (0-10): À quel point la punchline est-elle mémorable et impactante? Les meilleures punchlines incluent des références culturelles pertinentes et restent en tête.
 
 Tu dois être impartial et objectif dans ton évaluation. Réponds uniquement avec un objet JSON contenant les scores pour chaque critère, sans aucun texte supplémentaire.
 """
@@ -406,11 +407,11 @@ Réponds avec un objet JSON au format suivant:
                 
                 # Calculer le score global (moyenne pondérée)
                 weights = {
-                    "cruaute": 0.25,
-                    "provocation": 0.25,
-                    "pertinence": 0.2,
-                    "concision": 0.1,
-                    "impact": 0.2
+                    "cruaute": 0.30,
+                    "provocation": 0.30,
+                    "pertinence": 0.15,
+                    "concision": 0.15,
+                    "impact": 0.10
                 }
                 
                 overall_score = sum(normalized_scores[criterion] * weight 
@@ -456,11 +457,11 @@ Réponds avec un objet JSON au format suivant:
         """
         # Pondération des critères (la somme doit être égale à 1)
         weights = {
-            "cruaute": 0.25,
-            "provocation": 0.25,
-            "pertinence": 0.2,
-            "concision": 0.1,
-            "impact": 0.2
+            "cruaute": 0.30,
+            "provocation": 0.30,
+            "pertinence": 0.15,
+            "concision": 0.15,
+            "impact": 0.10
         }
         
         # Calculer la moyenne pondérée
@@ -491,7 +492,25 @@ Réponds avec un objet JSON au format suivant:
         # Utiliser une expression régulière pour supprimer les guillemets au début et à la fin
         text = re.sub(r'^[\s"\']+|[\s"\']+$', '', text)
         
-        return text
+        # S'assurer que la punchline commence par "Quand"
+        if not text.startswith("Quand"):
+            text = "Quand " + text
+        
+        # Limiter la longueur de la punchline (max 120 caractères)
+        if len(text) > 120:
+            # Trouver le dernier point ou la dernière virgule avant 120 caractères
+            last_punct = max(text[:120].rfind('.'), text[:120].rfind(','))
+            if last_punct > 0:
+                text = text[:last_punct+1]
+            else:
+                text = text[:120]
+        
+        # Supprimer tout ce qui suit un point final
+        period_index = text.find('.')
+        if period_index > 0:
+            text = text[:period_index+1]
+        
+        return text.strip()
     
     def _store_evaluation(
         self, 

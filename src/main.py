@@ -2,36 +2,36 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-from controllers.meme_controller import MemeController
+from core.meme_generator import MemeGenerator
 
-# Load environment variables
+# Charger les variables d'environnement
 load_dotenv()
 
-# Default subject for punchline generation
+# Sujet par défaut pour la génération de punchlines
 DEFAULT_SUBJECT = "L'arrogance des développeurs"
 
 async def main():
     """
-    Main function that generates an 'L'ARROGANCE!' video meme on each execution
+    Fonction principale qui génère un mème vidéo 'L'ARROGANCE!' à chaque exécution
     """
     try:
-        print("🎬 Starting 'L'ARROGANCE!' meme generator...")
+        print("🎬 Démarrage du générateur de mèmes 'L'ARROGANCE!'...")
         
-        # Initialize the meme controller
-        meme_controller = MemeController()
+        # Initialiser le générateur de mèmes
+        meme_generator = MemeGenerator()
         
-        # Generate the meme with the default subject
-        result = await meme_controller.generate_meme(subject=DEFAULT_SUBJECT)
+        # Générer le mème avec le sujet par défaut
+        result = await meme_generator.generate_meme(subject=DEFAULT_SUBJECT)
         
-        print(f"✅ Meme generated successfully!")
-        print(f"📝 Text: {result['text']}")
-        print(f"🎥 Video: {result['video_path']}")
+        print(f"✅ Mème généré avec succès!")
+        print(f"📝 Texte: {result['text']}")
+        print(f"🎥 Vidéo: {result['video_path']}")
         
         return result
     except Exception as e:
-        print(f"❌ Error generating meme: {str(e)}")
+        print(f"❌ Erreur lors de la génération du mème: {str(e)}")
         raise e
 
 if __name__ == "__main__":
-    # Run the main function asynchronously
+    # Exécuter la fonction principale de manière asynchrone
     result = asyncio.run(main()) 

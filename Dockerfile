@@ -1,30 +1,40 @@
-FROM python:3.12-slim
+FROM python:3.11-slim-buster
 
-WORKDIR /app
-
-# Installer les dépendances système nécessaires
+# Install necessary dependencies
 RUN apt-get update && apt-get install -y \
+    imagemagick \
     ffmpeg \
     libsm6 \
     libxext6 \
-    libgl1-mesa-glx \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier les fichiers de dépendances
-COPY requirements.txt .
+# Configure ImageMagick policy to allow all operations
+RUN echo '<policymap>\
+  <policy domain="resource" name="memory" value="256MiB"/>\
+  <policy domain="resource" name="map" value="512MiB"/>\
+  <policy domain="resource" name="width" value="16KP"/>\
+  <policy domain="resource" name="height" value="16KP"/>\
+  <policy domain="resource" name="area" value="128MB"/>\
+  <policy domain="resource" name="disk" value="1GiB"/>\
+  <policy domain="delegate" rights="none" pattern="URL" />\
+  <policy domain="delegate" rights="none" pattern="HTTPS" />\
+  <policy domain="delegate" rights="none" pattern="HTTP" />\
+  <policy domain="path" rights="none" pattern="@*" />\
+  <policy domain="path" rights="read | write" pattern="*" />\
+</policymap>' > /etc/ImageMagick-6/policy.xml
 
-# Installer les dépendances Python
+# Set the working directory
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le reste du code
-COPY . .
-
-# Définir les variables d'environnement
-ENV PYTHONPATH=/app
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Exposer le port pour l'API web
-EXPOSE 8000
-
-# Commande par défaut
-CMD ["python", "src/main.py"] 
+# Run the application
+CMD ["python", "src/core/video_processor.py"] 
