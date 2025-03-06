@@ -2,13 +2,13 @@ import os
 import asyncio
 from dotenv import load_dotenv
 
-from meme_generator import MemeGenerator
+from core.meme_generator import MemeGenerator
 
 # Charger les variables d'environnement
 load_dotenv()
 
-# Prompt par défaut pour la génération de punchlines
-DEFAULT_PROMPT = "Génère une punchline humoristique pour introduire quelqu'un qui crie 'L'ARROGANCE!'"
+# Sujet par défaut pour la génération de punchlines
+DEFAULT_SUBJECT = "L'arrogance des développeurs"
 
 async def main():
     """
@@ -20,8 +20,8 @@ async def main():
         # Initialiser le générateur de mèmes
         meme_generator = MemeGenerator()
         
-        # Générer le mème avec le prompt par défaut
-        result = await meme_generator.generate_meme(prompt=DEFAULT_PROMPT)
+        # Générer le mème avec le sujet par défaut
+        result = await meme_generator.generate_meme(subject=DEFAULT_SUBJECT)
         
         print(f"✅ Mème généré avec succès!")
         print(f"📝 Texte: {result['text']}")

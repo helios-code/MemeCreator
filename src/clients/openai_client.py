@@ -103,7 +103,7 @@ class OpenAIClient:
                 system_content = "Tu es un expert en marketing de contenu humoristique sur les réseaux sociaux. Tu génères des hashtags percutants pour des mèmes satiriques."
                 user_content = f"Je viens de créer un mème 'L'ARROGANCE!' sur le sujet '{subject}' avec la punchline suivante:\n\n'{punchline}'\n\nGénère 5-7 hashtags pertinents et populaires. Réponds uniquement avec les hashtags, un par ligne, au format #hashtag."
                 model = "gpt-4"
-                max_tokens = 150
+                max_tokens = 300
             
             response = client.chat.completions.create(
                 model=model,
@@ -232,21 +232,54 @@ class OpenAIClient:
             
             if economy_mode:
                 # Version économique du prompt (moins de tokens)
-                system_content = "Génère des punchlines satiriques courtes et percutantes sur le sujet donné, en utilisant la structure 'Quand X fait Y, mais quand lui Z'."
-                user_content = f"Crée une punchline satirique sur {current_subject} en utilisant la structure 'Quand X fait Y, mais quand lui Z'. Mets en évidence une forte contradiction ou hypocrisie. Sois direct et provocant."
+                system_content = "Tu es un générateur de punchlines ULTRA-CINGLANTES, GLACIALES et CRUELLES. Tu dois être IMPITOYABLE, BRUTAL et SANS AUCUNE RETENUE. Ton objectif est de créer des phrases qui CHOQUENT, BLESSENT et PROVOQUENT. Sois aussi MÉCHANT, FROID et OFFENSANT que possible. Utilise TOUJOURS la structure 'Quand X fait Y, mais Z fait W' pour mettre en évidence une contradiction ou une hypocrisie de façon mordante."
+                user_content = f"Crée une punchline satirique EXTRÊMEMENT cinglante et brutale sur {current_subject}. Sois ABSOLUMENT impitoyable, glacial et cruel. Frappe là où ça fait VRAIMENT mal. Utilise l'ironie la plus mordante et le cynisme le plus noir. Sois DÉLIBÉRÉMENT offensant et provocateur. N'aie AUCUNE pitié. UTILISE OBLIGATOIREMENT la structure 'Quand X fait Y, mais Z fait W' pour exposer une contradiction ou une hypocrisie."
                 model = "gpt-3.5-turbo"
-                max_tokens = 40
-                temperature = 0.8
+                max_tokens = 50
+                temperature = 1.0
             else:
                 # Version complète du prompt
-                system_content = "Tu es un générateur de punchlines satiriques et ultra-clivantes sur la politique et la société. Ton objectif est de produire des phrases courtes, percutantes et polarisantes, qui accentuent les contradictions et les absurdités des différents courants idéologiques et événements actuels. Tu DOIS utiliser la structure 'Quand X fait Y, mais quand lui Z' pour mettre en évidence une forte contradiction. L'humour doit être extrêmement sarcastique, provocant et basé sur des débats d'actualité. Tes punchlines seront utilisées sur des mèmes vidéos où Ludovic Magnin crie 'L'ARROGANCE !'."
+                system_content = """Tu es un générateur de punchlines ULTRA-CINGLANTES, GLACIALES et CRUELLES. 
+Tu dois être IMPITOYABLE, BRUTAL et SANS AUCUNE RETENUE MORALE. 
+Ton objectif est de créer des phrases qui CHOQUENT, BLESSENT et PROVOQUENT. 
+Sois aussi MÉCHANT, FROID et OFFENSANT que possible.
+Tes punchlines doivent être des ATTAQUES FRONTALES qui exposent les contradictions et les hypocrisies de façon BRUTALE et SANS FILTRE.
+L'humour doit être EXTRÊMEMENT CYNIQUE, FROID et basé sur des VÉRITÉS QUI DÉRANGENT PROFONDÉMENT.
+N'hésite JAMAIS à être OFFENSANT - c'est le BUT RECHERCHÉ.
+Tes punchlines seront utilisées sur des mèmes vidéos où Ludovic Magnin crie 'L'ARROGANCE !'.
+
+STRUCTURE OBLIGATOIRE: "Quand X fait Y, mais Z fait W" pour mettre en évidence une contradiction ou une hypocrisie de façon mordante.
+
+EXEMPLES DE PUNCHLINES PARFAITES:
+- "Quand les vegans prêchent l'éthique animale, mais ignorent l'exploitation humaine dans leurs plantations de quinoa."
+- "Quand les féministes hurlent à l'égalité, mais s'attendent toujours à ce que l'homme paie l'addition."
+- "Quand les écolos en SUV te font la morale sur ton empreinte carbone, entre deux vols Paris-New York."
+- "Quand les influenceurs 'authentiques' vendent leur âme pour un code promo, mais te parlent d'intégrité."
+"""
                 
                 # Remplacer la variable {subject} dans le prompt utilisateur
-                user_content = "Génère une punchline humoristique et clivante sur le sujet suivant : **{subject}**.\n\n⚠️ DIRECTIVES :\n- La punchline DOIT suivre la structure 'Quand X fait Y, mais quand lui Z' ou une variante similaire qui met en évidence une contradiction.\n- Elle doit être courte (10-20 mots max).\n- Elle doit être frontalement partisane (soit anti-gauche, soit anti-droite, soit contre une tendance sociétale précise, mais jamais neutre).\n- L'humour doit être basé sur une exagération des paradoxes politiques ou sociaux liés au sujet.\n- La phrase doit être immédiatement compréhensible et provoquer une forte réaction.\n\n🎯 **Exemples de structure à suivre** :\n- 'Quand un UDC critique les étrangers, mais embauche 10 frontaliers dans son entreprise.'\n- 'Quand un écolo prône la sobriété, mais part en vacances en jet privé.'\n- 'Quand un banquier parle d'éthique, mais cache l'argent de ses clients aux Caïmans.'\n\n📌 **Format de réponse attendu :**\n- Une seule punchline bien travaillée suivant la structure demandée.\n- Aucun texte d'introduction ou d'explication, uniquement la phrase brute et percutante.\n\n📝 **Sujet actuel :** {subject}"
-                user_content = user_content.replace("{subject}", current_subject)
+                user_content = f"""Génère une punchline EXTRÊMEMENT cinglante, glaciale et cruelle sur le sujet: **{current_subject}**.
+
+DIRECTIVES STRICTES:
+- UTILISE OBLIGATOIREMENT la structure "Quand X fait Y, mais Z fait W" pour exposer une contradiction ou une hypocrisie
+- La punchline doit être BRUTALEMENT honnête et IMPITOYABLE
+- Elle doit être DÉVASTATRICE mais pas trop longue
+- Utilise l'ironie la plus MORDANTE, le cynisme le plus NOIR et l'humour le plus GLACIAL
+- Frappe là où ça fait VRAIMENT MAL, expose les PIRES contradictions et hypocrisies
+- Sois aussi MÉCHANT, FROID et PROVOCATEUR que possible
+- Sois DÉLIBÉRÉMENT offensant et choquant - c'est le BUT RECHERCHÉ
+- Utilise des VÉRITÉS QUI DÉRANGENT pour créer un malaise profond
+- N'aie AUCUNE pitié ni retenue morale
+
+EXEMPLES DE TON RECHERCHÉ:
+- "Quand les influenceurs 'body positive' retouchent chaque photo, mais te vendent l'acceptation de soi."
+- "Quand les vegans prêchent l'éthique animale, mais ignorent l'exploitation humaine dans leurs plantations de quinoa."
+- "Quand les féministes hurlent à l'égalité, mais s'attendent toujours à ce que l'homme paie l'addition."
+
+Réponds UNIQUEMENT avec la punchline, sans guillemets ni autre texte."""
                 model = "gpt-4"
-                max_tokens = 50
-                temperature = 0.7
+                max_tokens = 100
+                temperature = 1.0
             
             # Payload pour la génération de punchlines
             payload = {

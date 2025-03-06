@@ -11,22 +11,21 @@ class VideoProcessor:
     def __init__(self):
         # Obtenir le chemin absolu du répertoire courant
         current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
         
-        # Obtenir les chemins depuis les variables d'environnement ou utiliser des valeurs par défaut
-        template_path_env = os.getenv('TEMPLATE_VIDEO_PATH', 'template.mp4')
+        # Chemin du fichier template
+        self.template_path = os.path.join(os.path.dirname(current_dir), 'data', 'template.mp4')
         
-        # Convertir en chemin absolu si nécessaire
-        if not os.path.isabs(template_path_env):
-            self.template_path = os.path.join(current_dir, os.path.basename(template_path_env))
-        else:
-            self.template_path = template_path_env
+        # Vérifier que le fichier template existe
+        if not os.path.exists(self.template_path):
+            raise FileNotFoundError(f"Le fichier template {self.template_path} n'existe pas")
         
         # Chemin du dossier de sortie
         output_dir_env = os.getenv('OUTPUT_DIRECTORY', 'output')
         if not os.path.isabs(output_dir_env):
-            self.output_dir = os.path.join(os.path.dirname(current_dir), output_dir_env)
+            self.output_dir = os.path.join(project_root, output_dir_env, 'videos')
         else:
-            self.output_dir = output_dir_env
+            self.output_dir = os.path.join(output_dir_env, 'videos')
         
         # Autres paramètres
         self.font = os.getenv('FONT_PATH', 'Arial')
