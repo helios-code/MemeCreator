@@ -1,0 +1,27 @@
+# Environnement virtuel
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers de sortie
+output/
+
+# Fichiers de configuration Git
+.git/
+.gitignore
+
+# Fichiers d'environnement
+.env
+
+# Fichiers de cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Fichiers Docker
+.dockerignore
+
+# Autres
+.DS_Store
+trash/ 

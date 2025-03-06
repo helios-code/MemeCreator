@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  meme-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: arrogance-meme-creator:latest
+    volumes:
+      - .:/app
+      - ./output:/app/output
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: python src/main.py 

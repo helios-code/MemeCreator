@@ -15,6 +15,16 @@ else
     fi
 fi
 
+# Vérifier si l'image Docker existe, sinon la construire
+check_docker_image() {
+    if [ "$USE_PYTHON" = false ]; then
+        if ! docker images | grep -q "arrogance-meme-creator"; then
+            echo "🔄 Construction de l'image Docker..."
+            docker compose build
+        fi
+    fi
+}
+
 # Fonction d'aide
 show_help() {
     echo "Usage: ./run-meme.sh [OPTION]"
@@ -28,6 +38,7 @@ show_help() {
     echo "  -s, --stats                 Afficher les statistiques des punchlines"
     echo "  -e, --export [FICHIER]      Exporter les punchlines vers un fichier"
     echo "  -q, --test-quality [SUJET]  Tester la pipeline de qualité"
+    echo "  -b, --build                 Reconstruire l'image Docker"
     echo ""
     echo "Exemples:"
     echo "  ./run-meme.sh --generate \"Les politiciens\" # Générer un mème sur les politiciens"
@@ -37,6 +48,7 @@ show_help() {
     echo "  ./run-meme.sh --stats                     # Afficher les statistiques des punchlines"
     echo "  ./run-meme.sh --export punchlines.jsonl   # Exporter les punchlines"
     echo "  ./run-meme.sh --test-quality \"Les médias\" # Tester la pipeline de qualité"
+    echo "  ./run-meme.sh --build                     # Reconstruire l'image Docker"
 }
 
 # Vérifier si le fichier .env existe
@@ -63,6 +75,15 @@ case "$1" in
     -h|--help)
         show_help
         ;;
+    -b|--build)
+        if [ "$USE_PYTHON" = true ]; then
+            echo "❌ Docker n'est pas installé. Impossible de construire l'image."
+            exit 1
+        fi
+        echo "🔄 Construction de l'image Docker..."
+        docker compose build
+        echo "✅ Image Docker construite avec succès."
+        ;;
     -g|--generate)
         if [ -z "$2" ]; then
             echo "❌ Veuillez spécifier un sujet pour la génération du mème."
@@ -72,6 +93,7 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python generate_meme.py -s "$2"
         else
+            check_docker_image
             docker compose run --rm meme-generator python src/generate_meme.py -s "$2"
         fi
         echo "✅ Mème généré avec succès. Vérifiez le dossier output."
@@ -85,6 +107,7 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python generate_meme.py -s "$2" --telegram
         else
+            check_docker_image
             docker compose run --rm meme-generator python src/generate_meme.py -s "$2" --telegram
         fi
         echo "✅ Mème généré et envoyé sur Telegram avec succès."
@@ -115,6 +138,7 @@ case "$1" in
             if [ "$USE_PYTHON" = true ]; then
                 cd src && python generate_meme.py -b "../$2" -l 1 $TELEGRAM_OPTION
             else
+                check_docker_image
                 docker compose run --rm meme-generator python src/generate_meme.py -b "$2" -l 1 $TELEGRAM_OPTION
             fi
         else
@@ -122,6 +146,7 @@ case "$1" in
             if [ "$USE_PYTHON" = true ]; then
                 cd src && python generate_meme.py -b "../$2" -l "$3" $TELEGRAM_OPTION
             else
+                check_docker_image
                 docker compose run --rm meme-generator python src/generate_meme.py -b "$2" -l "$3" $TELEGRAM_OPTION
             fi
         fi
@@ -133,7 +158,8 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python main.py
         else
-            docker compose run -p 8000:8000 --rm meme-generator python src/main.py
+            check_docker_image
+            docker compose up meme-generator
         fi
         echo "✅ API web lancée avec succès."
         ;;
@@ -142,6 +168,7 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python -c "from utils.punchlines_stats import get_punchlines_stats; get_punchlines_stats()"
         else
+            check_docker_image
             docker compose run --rm meme-generator python -c "from src.utils.punchlines_stats import get_punchlines_stats; get_punchlines_stats()"
         fi
         echo "✅ Statistiques affichées avec succès."
@@ -155,6 +182,7 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python -c "from utils.export_punchlines import export_punchlines; export_punchlines('../output/exports/$2')"
         else
+            check_docker_image
             docker compose run --rm meme-generator python -c "from src.utils.export_punchlines import export_punchlines; export_punchlines('output/exports/$2')"
         fi
         echo "✅ Punchlines exportées avec succès."
@@ -168,6 +196,7 @@ case "$1" in
         if [ "$USE_PYTHON" = true ]; then
             cd src && python -c "import asyncio; from tests.test_quality_pipeline import test_get_best_punchline; asyncio.run(test_get_best_punchline('$2'))"
         else
+            check_docker_image
             docker compose run --rm meme-generator python -c "import asyncio; from src.tests.test_quality_pipeline import test_get_best_punchline; asyncio.run(test_get_best_punchline('$2'))"
         fi
         echo "✅ Test de la pipeline de qualité terminé avec succès."
