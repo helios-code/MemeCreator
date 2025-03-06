@@ -14,7 +14,6 @@ A video meme generator that uses Ludovic Magnin's template shouting "L'ARROGANCE
 - [Usage](#-usage)
 - [Quality Pipeline](#-quality-pipeline)
 - [Batch Generation](#-batch-generation)
-- [API](#-api)
 - [Troubleshooting](#-troubleshooting)
 
 ## 🚀 Features
@@ -238,29 +237,6 @@ JSON file format:
   ]
 }
 ```
-
-## 🌐 API
-
-The project includes a simple API to generate memes via HTTP requests:
-
-```bash
-cd src
-python main.py
-```
-
-The API will be available at `http://localhost:8000`.
-
-### Endpoints
-
-- `POST /generate`: Generates a meme
-  ```json
-  {
-    "subject": "Politicians",
-    "custom_text": "Custom text (optional)",
-    "economy_mode": false,
-    "send_to_telegram": false
-  }
-  ```
 
 ## 🔧 Troubleshooting
 
